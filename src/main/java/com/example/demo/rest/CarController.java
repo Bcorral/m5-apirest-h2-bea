@@ -1,6 +1,7 @@
 package com.example.demo.rest;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.domain.Car;
+import com.example.demo.repository.CarRepository;
 
 @RequestMapping("/api")
 @RestController
 public class CarController {
+	
+	private CarRepository carRepository;
+	public CarController(CarRepository carRepository) {// spring inyecta dependencia
+		this.carRepository = carRepository;
+	}
 	/**
 	 * http://localhost:8080/api/cars/1
 	 * @return
@@ -30,8 +37,12 @@ public class CarController {
 	@GetMapping("/cars/{id}")
 	public ResponseEntity<Car> findOne(@PathVariable("id") Long id){
 		log.info("REST request to find one car");
-		Car car1 = new Car(id,"Ford","Mondeo",2.0,3);
-		return ResponseEntity.ok(car1);
+		Optional<Car> carOpt = this.carRepository.findById(id);
+		if(carOpt.isPresent())
+			return ResponseEntity.ok(carOpt.get());
+		return ResponseEntity.notFound().build();
+		//Car car1 = new Car(id,"Ford","Mondeo",2.0,3);
+		//return ResponseEntity.ok(car1);
 	}
 	
 	// find all
@@ -42,9 +53,11 @@ public class CarController {
 	@GetMapping("/cars")
 	public List<Car> findAll(){
 		log.info("REST request to find all cars");
-		Car car1 = new Car(1L,"Ford","Mondeo",1.5,5);
-		Car car2 = new Car(2L,"Toyota","Prius",1.5,5);
-		return List.of(car1,car2);
+//		Car car1 = new Car(1L,"Ford","Mondeo",1.5,5);
+//		Car car2 = new Car(2L,"Toyota","Prius",1.5,5);
+//		return List.of(car1,car2);
+		
+		return this.carRepository.findAll();
 				
 				
 	}
@@ -65,8 +78,10 @@ public class CarController {
 		
 		//return ResponseEntity.ok(new Car(5L,"Ford","Mondeo",0.5,6));
 		
-		car.setId(3L);// simular creacion de id
-		return ResponseEntity.ok(car);
+//		car.setId(3L);// simular creacion de id
+//		return ResponseEntity.ok(car);
+		return ResponseEntity.ok(this.carRepository.save(car));
+		
 	}
 	
 	// update
@@ -82,9 +97,9 @@ public class CarController {
 			return ResponseEntity.badRequest().build();
 		}
 			//simular actualizacion
-		car.setManufacturer(car.getManufacturer() + " Editado");
-		return ResponseEntity.ok(car);
-		
+//		car.setManufacturer(car.getManufacturer() + " Editado");
+//		return ResponseEntity.ok(car);
+		return ResponseEntity.ok(this.carRepository.save(car));
 	}
 	
 	
@@ -97,6 +112,7 @@ public class CarController {
 	public ResponseEntity<Car> deleteOne(@PathVariable("id") Long id){
 		log.info("REST request to delete an existing car");
 		
+		this.carRepository.deleteById(id);
 		//simular borra de bbdd
 		//deletebyId(id)
 		
@@ -114,7 +130,7 @@ public class CarController {
 		
 		//simular borra de bbdd
 		//deleteAll
-		
+		this.carRepository.deleteAll();
 		return ResponseEntity.noContent().build();// nos dice que se ha borrado	
 	}
 	
